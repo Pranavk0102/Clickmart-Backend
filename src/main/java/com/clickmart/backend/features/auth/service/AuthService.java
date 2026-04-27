@@ -26,18 +26,24 @@ public class AuthService {
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
     private final TokenRevocationService tokenRevocationService;
+    private final com.clickmart.backend.features.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository;
+    private final com.clickmart.backend.service.EmailService emailService;
 
     @Autowired
     public AuthService(UserRepository userRepository, 
                        PasswordEncoder passwordEncoder, 
                        JwtUtil jwtUtil, 
                        CustomUserDetailsService userDetailsService, 
-                       TokenRevocationService tokenRevocationService) {
+                       TokenRevocationService tokenRevocationService,
+                       com.clickmart.backend.features.auth.repository.PasswordResetTokenRepository passwordResetTokenRepository,
+                       com.clickmart.backend.service.EmailService emailService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtUtil = jwtUtil;
         this.userDetailsService = userDetailsService;
         this.tokenRevocationService = tokenRevocationService;
+        this.passwordResetTokenRepository = passwordResetTokenRepository;
+        this.emailService = emailService;
     }
 
     public AuthResponse register(RegisterRequest request) {
@@ -117,6 +123,44 @@ public class AuthService {
 
         tokenRevocationService.revokeToken(accessToken);
         tokenRevocationService.revokeToken(refreshToken);
+    }
+
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null || !user.getActive()) {
+            return; // Fail silently for security
+        }
+
+        passwordResetTokenRepository.findByUser(user).ifPresent(t -> {
+            passwordResetTokenRepository.delete(t);
+            passwordResetTokenRepository.flush(); // Force delete to happen before insert to avoid unique constraint violation
+        });
+
+        String otp = String.format("%06d", new java.util.Random().nextInt(999999));
+        
+        com.clickmart.backend.entity.PasswordResetToken token = new com.clickmart.backend.entity.PasswordResetToken(
+                otp, user, java.time.LocalDateTime.now().plusMinutes(10)
+        );
+        passwordResetTokenRepository.save(token);
+
+        // Send email with OTP
+        emailService.sendPasswordResetEmail(user.getEmail(), otp);
+    }
+
+    public void resetPassword(String tokenString, String newPassword) {
+        com.clickmart.backend.entity.PasswordResetToken token = passwordResetTokenRepository.findByToken(tokenString)
+                .orElseThrow(() -> new BadRequestException("Invalid or expired password reset token"));
+
+        if (token.isExpired()) {
+            passwordResetTokenRepository.delete(token);
+            throw new BadRequestException("Invalid or expired password reset token");
+        }
+
+        User user = token.getUser();
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        passwordResetTokenRepository.delete(token);
     }
 
     private AuthResponse buildAuthResponse(User user) {

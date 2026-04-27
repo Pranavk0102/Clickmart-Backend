@@ -38,6 +38,9 @@ public class Coupon {
     @DecimalMin(value = "0.0", message = "Maximum discount cannot be negative")
     private Double maxDiscount;
 
+    @Column(name = "category_id")
+    private Long categoryId;
+
     @Column(nullable = false)
     private Boolean active = true;
 
@@ -73,6 +76,9 @@ public class Coupon {
 
     public Double getMaxDiscount() { return maxDiscount; }
     public void setMaxDiscount(Double maxDiscount) { this.maxDiscount = maxDiscount; }
+
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
 
     public Boolean getActive() { return active; }
     public void setActive(Boolean active) { this.active = active; }

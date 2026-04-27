@@ -1,6 +1,7 @@
 package com.clickmart.backend.features.coupon.dto;
 
 import jakarta.validation.constraints.*;
+import java.util.List;
 
 public class CouponValidateRequest {
     @NotBlank(message = "Coupon code is required")
@@ -10,9 +11,13 @@ public class CouponValidateRequest {
     @DecimalMin(value = "0.0")
     private Double orderTotal;
 
+    private List<Long> categoryIds;
+
     public CouponValidateRequest() {}
     public String getCode() { return code; }
     public void setCode(String code) { this.code = code; }
     public Double getOrderTotal() { return orderTotal; }
     public void setOrderTotal(Double orderTotal) { this.orderTotal = orderTotal; }
+    public List<Long> getCategoryIds() { return categoryIds; }
+    public void setCategoryIds(List<Long> categoryIds) { this.categoryIds = categoryIds; }
 }

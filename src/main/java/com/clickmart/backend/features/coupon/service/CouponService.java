@@ -3,6 +3,7 @@ package com.clickmart.backend.features.coupon.service;
 import com.clickmart.backend.entity.Coupon;
 import com.clickmart.backend.exceptions.BadRequestException;
 import com.clickmart.backend.exceptions.ResourceNotFoundException;
+import com.clickmart.backend.features.category.repository.CategoryRepository;
 import com.clickmart.backend.features.coupon.dto.CouponDTO;
 import com.clickmart.backend.features.coupon.dto.CouponValidateRequest;
 import com.clickmart.backend.features.coupon.repository.CouponRepository;
@@ -21,10 +22,12 @@ import java.util.Map;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final CategoryRepository categoryRepository;
 
     @Autowired
-    public CouponService(CouponRepository couponRepository) {
+    public CouponService(CouponRepository couponRepository, CategoryRepository categoryRepository) {
         this.couponRepository = couponRepository;
+        this.categoryRepository = categoryRepository;
     }
 
     @Transactional(readOnly = true)
@@ -46,6 +49,15 @@ public class CouponService {
 
         if (coupon.getMinOrderValue() != null && req.getOrderTotal() < coupon.getMinOrderValue())
             throw new BadRequestException("Minimum order value for this coupon is Rs." + coupon.getMinOrderValue());
+
+        if (coupon.getCategoryId() != null && req.getCategoryIds() != null && !req.getCategoryIds().isEmpty()) {
+            boolean categoryMatch = req.getCategoryIds().stream().anyMatch(cid -> cid.equals(coupon.getCategoryId()));
+            if (!categoryMatch) {
+                String catName = categoryRepository.findById(coupon.getCategoryId())
+                        .map(c -> c.getName()).orElse("specific category");
+                throw new BadRequestException("This coupon is only valid for products in the '" + catName + "' category.");
+            }
+        }
 
         double discount;
         if ("PERCENT".equalsIgnoreCase(coupon.getDiscountType())) {
@@ -104,6 +116,10 @@ public class CouponService {
     public CouponDTO toDTO(Coupon coupon) {
         CouponDTO dto = new CouponDTO();
         BeanUtils.copyProperties(coupon, dto);
+        if (coupon.getCategoryId() != null) {
+            categoryRepository.findById(coupon.getCategoryId())
+                    .ifPresent(cat -> dto.setCategoryName(cat.getName()));
+        }
         return dto;
     }
 }

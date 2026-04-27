@@ -33,13 +33,17 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     Optional<Product> findByIdForUpdate(@Param("id") Long id);
 
     @Query("SELECT p FROM Product p WHERE p.active = true AND " +
-           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           "(LOWER(p.name) LIKE LOWER(CONCAT(:q, '%')) OR " +
+           " LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
            " LOWER(p.brand) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           " LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%')))")
+           " LOWER(p.description) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+           "ORDER BY CASE WHEN LOWER(p.name) LIKE LOWER(CONCAT(:q, '%')) THEN 0 ELSE 1 END ASC")
     Page<Product> searchProducts(@Param("q") String query, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE p.active = true AND p.category.id = :catId AND " +
-           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
-           " LOWER(p.brand) LIKE LOWER(CONCAT('%', :q, '%')))")
+           "(LOWER(p.name) LIKE LOWER(CONCAT(:q, '%')) OR " +
+           " LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%')) OR " +
+           " LOWER(p.brand) LIKE LOWER(CONCAT('%', :q, '%'))) " +
+           "ORDER BY CASE WHEN LOWER(p.name) LIKE LOWER(CONCAT(:q, '%')) THEN 0 ELSE 1 END ASC")
     Page<Product> searchInCategory(@Param("q") String query, @Param("catId") Long catId, Pageable pageable);
 }

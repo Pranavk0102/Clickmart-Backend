@@ -58,6 +58,13 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
+    @PatchMapping("/my/{orderNumber}/return")
+    public ResponseEntity<ApiResponse<OrderDTO>> returnOrder(@PathVariable("orderNumber") String orderNumber) {
+        OrderDTO returnedOrder = orderService.returnOrder(orderNumber);
+        ApiResponse<OrderDTO> response = new ApiResponse<>(true, "Return request submitted", returnedOrder);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
+    }
+
     @GetMapping("/{orderNumber}")
     public ResponseEntity<ApiResponse<OrderDTO>> getOrder(@PathVariable("orderNumber") String orderNumber) {
         OrderDTO order = orderService.getOrder(orderNumber);

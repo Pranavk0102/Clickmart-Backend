@@ -230,6 +230,16 @@ public class OrderService {
                 throw new BadRequestException("Minimum order value for this coupon is Rs." + coupon.getMinOrderValue());
             }
 
+            if (coupon.getCategoryId() != null) {
+                boolean hasMatchingCategory = orderItems.stream()
+                        .anyMatch(item -> item.getProduct() != null
+                                && item.getProduct().getCategory() != null
+                                && coupon.getCategoryId().equals(item.getProduct().getCategory().getId()));
+                if (!hasMatchingCategory) {
+                    throw new BadRequestException("This coupon is only valid for products in a specific category.");
+                }
+            }
+
             if ("PERCENT".equalsIgnoreCase(coupon.getDiscountType())) {
                 discount = subtotal * coupon.getDiscountValue() / 100.0;
                 if (coupon.getMaxDiscount() != null) {
@@ -322,8 +332,8 @@ public class OrderService {
         Order order = orderRepository.findByOrderNumberAndUserId(orderNumber, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-        if (order.getStatus() != OrderStatus.PENDING) {
-            throw new BadRequestException("Order cannot be cancelled at this stage");
+        if (order.getStatus() != OrderStatus.PENDING && order.getStatus() != OrderStatus.CONFIRMED) {
+            throw new BadRequestException("Order cannot be cancelled. Only PENDING or CONFIRMED orders can be cancelled.");
         }
 
         order.setStatus(OrderStatus.CANCELLED);
@@ -336,6 +346,26 @@ public class OrderService {
                 "ORDER");
         return orderMapper.toDTO(savedOrder);
     }
+
+    public OrderDTO returnOrder(String orderNumber) {
+        Long userId = securityUtils.getCurrentUserId();
+        Order order = orderRepository.findByOrderNumberAndUserId(orderNumber, userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getStatus() != OrderStatus.DELIVERED) {
+            throw new BadRequestException("Return requests can only be made for delivered orders.");
+        }
+
+        order.setStatus(OrderStatus.RETURNED);
+        restoreStock(order);
+
+        Order savedOrder = orderRepository.save(order);
+        notificationService.createNotification(savedOrder.getUser(),
+                "Return request for order " + savedOrder.getOrderNumber() + " has been submitted.",
+                "ORDER");
+        return orderMapper.toDTO(savedOrder);
+    }
+
 
     @Transactional(readOnly = true)
     public Page<OrderDTO> getAllOrders(String query, String status, int page, int size) {
@@ -385,10 +415,10 @@ public class OrderService {
         boolean allowed = false;
         
         if (currentStatus == OrderStatus.PENDING) {
-            if (newStatus == OrderStatus.PROCESSING || newStatus == OrderStatus.CANCELLED) {
+            if (newStatus == OrderStatus.CONFIRMED || newStatus == OrderStatus.CANCELLED) {
                 allowed = true;
             }
-        } else if (currentStatus == OrderStatus.PROCESSING) {
+        } else if (currentStatus == OrderStatus.CONFIRMED) {
             if (newStatus == OrderStatus.SHIPPED || newStatus == OrderStatus.CANCELLED) {
                 allowed = true;
             }
@@ -413,6 +443,11 @@ public class OrderService {
     private void syncPaymentWithOrder(Order order) {
         if (order.getStatus() == OrderStatus.CANCELLED) {
             paymentService.updatePaymentStatus(order, "CANCELLED");
+            restoreStock(order);
+            return;
+        }
+
+        if (order.getStatus() == OrderStatus.RETURNED) {
             restoreStock(order);
             return;
         }

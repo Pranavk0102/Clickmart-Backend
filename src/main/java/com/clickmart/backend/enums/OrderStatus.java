@@ -2,9 +2,9 @@ package com.clickmart.backend.enums;
 
 public enum OrderStatus {
     PENDING,
-    PROCESSING,
+    CONFIRMED,
     SHIPPED,
     DELIVERED,
     CANCELLED,
-    RETURNED
+    RETURNED, PROCESSING
 }

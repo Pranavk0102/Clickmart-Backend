@@ -72,6 +72,24 @@ public class AuthController {
     }
 
     
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @Valid @RequestBody com.clickmart.backend.features.auth.dto.ForgotPasswordRequest request) {
+        log.info("Forgot password request received for email: {}", request.getEmail());
+        authService.forgotPassword(request.getEmail());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(true, "If an account exists, a password reset link has been sent to the email.", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody com.clickmart.backend.features.auth.dto.ResetPasswordRequest request) {
+        log.info("Reset password request received");
+        authService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.status(HttpStatus.OK)
+                .body(new ApiResponse<>(true, "Password has been reset successfully", null));
+    }
+
     @GetMapping("/me")
     public ResponseEntity<ApiResponse<UserDTO>> me() {
         log.info("Get current user info request received");

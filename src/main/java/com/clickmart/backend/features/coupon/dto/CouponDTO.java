@@ -13,6 +13,9 @@ public class CouponDTO {
     private Boolean active;
     private LocalDateTime expiresAt;
 
+    private Long categoryId;
+    private String categoryName;
+
     public CouponDTO() {}
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -32,4 +35,8 @@ public class CouponDTO {
     public void setActive(Boolean active) { this.active = active; }
     public LocalDateTime getExpiresAt() { return expiresAt; }
     public void setExpiresAt(LocalDateTime expiresAt) { this.expiresAt = expiresAt; }
+    public Long getCategoryId() { return categoryId; }
+    public void setCategoryId(Long categoryId) { this.categoryId = categoryId; }
+    public String getCategoryName() { return categoryName; }
+    public void setCategoryName(String categoryName) { this.categoryName = categoryName; }
 }
