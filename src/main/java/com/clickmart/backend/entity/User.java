@@ -16,12 +16,13 @@ public class User {
 
     @NotBlank(message = "First name is required")
     @Size(min = 2, max = 50, message = "First name must be 2-50 characters")
+    @Pattern(regexp = "^[a-zA-Z][a-zA-Z\\s'\\-]*$", message = "First name can only contain letters, apostrophes, and hyphens")
     @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(min = 2, max = 50, message = "Last name must be 2-50 characters")
-    @Column(name = "last_name", nullable = false, length = 50)
+    @Size(min = 1, max = 50, message = "Last name must be 1-50 characters")
+    @Pattern(regexp = "^[a-zA-Z][a-zA-Z\\s'\\-]*$", message = "Last name can only contain letters, apostrophes, and hyphens")
+    @Column(name = "last_name", nullable = true, length = 50)
     private String lastName;
 
     @NotBlank(message = "Email is required")

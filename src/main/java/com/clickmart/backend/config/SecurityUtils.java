@@ -2,7 +2,6 @@ package com.clickmart.backend.config;
 
 import com.clickmart.backend.entity.User;
 import com.clickmart.backend.features.auth.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
@@ -12,7 +11,6 @@ public class SecurityUtils {
 
     private final UserRepository userRepository;
 
-    @Autowired
     public SecurityUtils(UserRepository userRepository) {
         this.userRepository = userRepository;
     }

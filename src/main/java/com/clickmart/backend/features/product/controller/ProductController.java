@@ -1,10 +1,12 @@
 package com.clickmart.backend.features.product.controller;
 
 import com.clickmart.backend.dto.ApiResponse;
-import com.clickmart.backend.features.product.dto.*;
+import com.clickmart.backend.features.product.dto.ProductDTO;
+import com.clickmart.backend.features.product.dto.ProductRequest;
+import com.clickmart.backend.features.product.dto.ReviewDTO;
+import com.clickmart.backend.features.product.dto.ReviewRequest;
 import com.clickmart.backend.features.product.service.ProductService;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -19,7 +21,6 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @Autowired
     public ProductController(ProductService productService) {
         this.productService = productService;
     }

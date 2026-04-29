@@ -2,16 +2,18 @@ package com.clickmart.backend.features.auth.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public class RegisterRequest {
 
     @NotBlank(message = "First name is required")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z][a-zA-Z\\s'\\-]*$", message = "First name can only contain letters, apostrophes, and hyphens")
     private String firstName;
 
-    @NotBlank(message = "Last name is required")
-    @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
+    @Size(min = 1, max = 50, message = "Last name must be between 1 and 50 characters")
+    @Pattern(regexp = "^[a-zA-Z][a-zA-Z\\s'\\-]*$", message = "Last name can only contain letters, apostrophes, and hyphens")
     private String lastName;
 
     @NotBlank(message = "Email is required")
