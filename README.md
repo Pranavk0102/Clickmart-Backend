@@ -41,6 +41,7 @@
 Ecommerce_Backend/
 ├── pom.xml                          # Maven build descriptor & dependencies
 ├── mvnw / mvnw.cmd                  # Maven wrapper scripts
+├── init.sql                         # Database initialization and sample data script
 └── src/
     ├── main/
     │   ├── java/com/clickmart/backend/
@@ -178,10 +179,15 @@ Before running the project, ensure you have the following installed:
 
 ### Step 1 — Create the Database
 
-Log in to MySQL and run:
+Log in to MySQL and create the database, then run the initialization script to populate sample data:
 
 ```sql
+-- 1. Create the database
 CREATE DATABASE ecommerce_backend;
+USE ecommerce_backend;
+
+-- 2. Run the initialization script (from the project root)
+SOURCE init.sql;
 ```
 
 ### Step 2 — Configure Secrets
